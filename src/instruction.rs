@@ -1,6 +1,9 @@
 //program API, (de)serializing instruction data
-
 //inside instruction.rs
+use std::convert::TryInto;
+use solana_program::program_eror::ProgramError;
+
+use crate::error::EscrowError::InvalidInstruction;
 
 // add InitEscrow API endpoint
 pub enum EscrowInstruction {
@@ -44,6 +47,47 @@ pub enum EscrowInstruction {
 InitEscrow {    
     // The amount part A expect to receive of token Y
     amount: u64
+
+    // This amount is not provided through an account but through the instruction_data.
+
+
+    }
+
 }
+
+//  Instruction.rs is responsible for decoding instruction_data
+
+// The following code involes several Rust core conncepts
+impl EscrowInstruction{
+    /// Unpacks a byte buffer into [EscrowInstruction](enum.EscrowInstruction.html).
+    pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
+        let (tag, rest) = input.split_first().ok_or(InvalidInstruction)?;
+
+        Ok(match tag {
+            0 => Self::InitEscrow {
+                amount: Self::unpack_amount(rest)?,
+            },
+            _ => return Err(InvalidInstruction.into()),
+        })
+
+
+
+    }
+    fn unpack_amount(input: &[u8]) -> Result<u64, ProgramError> {
+        let amount = input
+            .get(..8)
+            .and_then(|slice| slice.try_into().ok())
+            .map(u64::from_le_bytes)
+            .ok_or(InvalidInstruction)?;
+        Ok(amount)
+    }
+
+    /// What is going on at a high level in the unpack function: 
+    /// 1. choose which instruction to build 
+    /// 2. build and return that instruction.
+
+    /// This won't compile because we are using an undefined error. Let's add that error next.
+    /// see details in error.rs
+
 
 }
