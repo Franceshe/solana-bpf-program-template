@@ -6,3 +6,4 @@ pub mod entrypoint;
 //you register the new module by adding the line pub mod entrypoint;.
 //This tells the Rust compiler that there is a module named entrypoint and it 
 // should be included in the compilation process.
+pub mod error;
